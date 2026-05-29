@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "BaseItem": {
+      "title": "BaseItem",
+      "description": "A cultural item like a movie, song, or series",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string", "enum": ["music", "movie", "series"] },
+        "title": { "type": "string" },
+        "creator": { "type": "string" },
+        "description": { "type": "string" },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "genres": { "type": "array", "items": { "type": "string" } },
+        "year": { "type": "string" },
+        "externalUrl": { "type": "string", "format": "uri" },
+        "trailerUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "type", "title", "creator", "description", "imageUrl", "genres"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "A review for an item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "itemId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "rating": { "type": "integer" },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "itemId", "userId", "userName", "rating", "comment", "createdAt"]
+    },
+    "Recommendation": {
+      "title": "Recommendation",
+      "description": "A suggestion linking one item to another",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sourceItemId": { "type": "string" },
+        "targetItem": { "$ref": "#/entities/BaseItem" },
+        "reason": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["id", "sourceItemId", "targetItem", "reason", "userId", "userName", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "bio": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "items": {
+      "schema": "BaseItem",
+      "description": "Collection of available movies, music, and series"
+    },
+    "reviews": {
+      "schema": "Review",
+      "description": "Collection of user reviews for items"
+    },
+    "recommendations": {
+      "schema": "Recommendation",
+      "description": "Collection of user-submitted recommendations"
+    },
+    "users": {
+      "schema": "UserProfile",
+      "description": "Private user profiles"
+    }
+  }
+}

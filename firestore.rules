@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidItem(data) {
+      return data.keys().hasAll(['id', 'type', 'title', 'creator', 'description', 'imageUrl', 'genres']) &&
+             data.keys().size() >= 7 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.type in ['music', 'movie', 'series'] &&
+             data.title is string && data.title.size() <= 200 &&
+             data.creator is string && data.creator.size() <= 200 &&
+             data.description is string && data.description.size() <= 2000 &&
+             data.imageUrl is string && data.imageUrl.size() <= 500 &&
+             data.genres is list && data.genres.size() <= 10 &&
+             (!('externalUrl' in data) || (data.externalUrl is string && data.externalUrl.size() <= 600)) &&
+             (!('trailerUrl' in data) || (data.trailerUrl is string && data.trailerUrl.size() <= 600));
+    }
+
+    function isValidReview(data) {
+      return data.keys().hasAll(['id', 'itemId', 'userId', 'userName', 'rating', 'comment', 'createdAt']) &&
+             data.keys().size() == 7 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.itemId is string && data.itemId.size() <= 128 &&
+             data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() <= 100 &&
+             data.rating is int && data.rating >= 1 && data.rating <= 5 &&
+             data.comment is string && data.comment.size() <= 1000 &&
+             data.createdAt is int && data.createdAt <= request.time.toMillis() + 60000;
+    }
+
+    function isValidRecommendation(data) {
+      return data.keys().hasAll(['id', 'sourceItemId', 'targetItem', 'reason', 'userId', 'userName', 'createdAt']) &&
+             data.keys().size() == 7 &&
+             data.id is string && data.id.size() <= 128 &&
+             data.sourceItemId is string && data.sourceItemId.size() <= 128 &&
+             isValidItem(data.targetItem) &&
+             data.reason is string && data.reason.size() <= 1000 &&
+             data.userId == request.auth.uid &&
+             data.userName is string && data.userName.size() <= 100 &&
+             data.createdAt is int && data.createdAt <= request.time.toMillis() + 60000;
+    }
+
+    function isValidProfile(data) {
+      return data.keys().hasAll(['name', 'avatarUrl', 'isAuthenticated']) &&
+             data.name is string && data.name.size() <= 100 &&
+             data.avatarUrl is string && data.avatarUrl.size() <= 500 &&
+             data.isAuthenticated is bool;
+    }
+
+    match /items/{itemId} {
+      allow get: if true;
+      allow list: if true;
+      allow create, update: if isSignedIn() && isValidItem(incoming()) && isValidId(itemId);
+    }
+
+    match /reviews/{reviewId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidReview(incoming()) && isValidId(reviewId);
+      allow update: if isOwner(existing().userId) && isValidReview(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['rating', 'comment', 'createdAt']);
+      allow delete: if isOwner(existing().userId);
+    }
+
+    match /recommendations/{recId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSignedIn() && isValidRecommendation(incoming()) && isValidId(recId);
+      allow update: if isOwner(existing().userId) && isValidRecommendation(incoming()) && incoming().diff(existing()).affectedKeys().hasOnly(['reason', 'createdAt']);
+      allow delete: if isOwner(existing().userId);
+    }
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidProfile(incoming());
+    }
+  }
+}
