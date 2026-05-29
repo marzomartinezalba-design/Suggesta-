@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { BaseItem, ItemType } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const ai = new GoogleGenAI({ apiKey: (import.meta as any).env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY });
 
 export async function generateItemInfo(query: string, typeHint?: ItemType): Promise<BaseItem | null> {
   try {
