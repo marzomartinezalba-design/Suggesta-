@@ -378,6 +378,15 @@ const BACKUP_ITEMS = [
   }
 ];
 
+function normalizeString(str: string): string {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
 function getFallbackSearchResults(query: string): any[] {
   const q = query.toLowerCase().trim();
 
@@ -669,21 +678,24 @@ function getFallbackSearchResults(query: string): any[] {
   }
   const allItems: any[] = Array.from(uniqueItemsMap.values());
 
+  const normQuery = normalizeString(query);
+  if (!normQuery) return [];
+
   // Define exact match & close keywords for genre identification
   const genreKeywords: Record<string, string[]> = {
-    "sci-fi": ["sci-fi", "science fiction", "ciencia ficción", "espacio", "space", "ficción", "fiction", "alien", "galaxy"],
-    "action": ["action", "acción", "fight", "combate", "disparos", "peleas"],
-    "drama": ["drama", "dramático", "llorar", "melodrama", "sad", "triste"],
+    "sci-fi": ["sci-fi", "science fiction", "ciencia ficcion", "espacio", "space", "ficcion", "fiction", "alien", "galaxy"],
+    "action": ["action", "accion", "fight", "combate", "disparos", "peleas"],
+    "drama": ["drama", "dramatico", "llorar", "melodrama", "sad", "triste"],
     "comedy": ["comedy", "comedia", "risa", "funny", "gracioso", "humor", "bromas"],
-    "romance": ["romance", "romántica", "romantic", "amor", "love", "pareja"],
+    "romance": ["romance", "romantica", "romantic", "amor", "love", "pareja"],
     "thriller": ["thriller", "suspense", "crimen", "crime", "terro", "horror", "miedo"],
-    "pop": ["pop", "música pop", "pop music", "cantante pop"],
-    "rock": ["rock", "música rock", "indie", "alternative", "band"]
+    "pop": ["pop", "musica pop", "pop music", "cantante pop"],
+    "rock": ["rock", "musica rock", "indie", "alternative", "band"]
   };
 
   // 1. FIRST, ATTEMPT TO FIND SPECIFIC WORK/TITLE MATCH (Exact or close substring)
   const exactTitleMatch = allItems.find(
-    item => q === item.title.toLowerCase()
+    item => normQuery === normalizeString(item.title)
   );
   if (exactTitleMatch) {
     const related = allItems.filter(
@@ -694,7 +706,7 @@ function getFallbackSearchResults(query: string): any[] {
   }
 
   const partialTitleMatch = allItems.find(
-    item => item.title.toLowerCase().includes(q) || q.includes(item.title.toLowerCase())
+    item => normalizeString(item.title).includes(normQuery) || normQuery.includes(normalizeString(item.title))
   );
   if (partialTitleMatch) {
     const related = allItems.filter(
@@ -706,16 +718,22 @@ function getFallbackSearchResults(query: string): any[] {
 
   // 2. SECOND, ATTEMPT TO FIND ARTIST/CREATOR MATCH (e.g. "Coldplay", "Nolan", "Keanu", "Pitt")
   const artistMatches = allItems.filter(
-    item => item.creator.toLowerCase().includes(q) || q.includes(item.creator.toLowerCase())
+    item => normalizeString(item.creator).includes(normQuery) || normQuery.includes(normalizeString(item.creator))
   );
   if (artistMatches.length > 0) {
-    return artistMatches;
+    if (artistMatches.length < 6) {
+      const otherSameType = allItems.filter(
+        item => !artistMatches.some(am => am.id === item.id) && item.type === artistMatches[0].type
+      );
+      return [...artistMatches, ...otherSameType].slice(0, 12);
+    }
+    return artistMatches.slice(0, 12);
   }
 
   // 3. THIRD, ATTEMPT TO FIND GENRE MATCH 
   let matchedGenre: string | null = null;
   for (const [genreName, keywords] of Object.entries(genreKeywords)) {
-    if (keywords.some(kw => q.includes(kw))) {
+    if (keywords.some(kw => normQuery.includes(kw))) {
       matchedGenre = genreName;
       break;
     }
@@ -723,28 +741,32 @@ function getFallbackSearchResults(query: string): any[] {
 
   if (matchedGenre) {
     const genreResults = allItems.filter(item => 
-      item.genres.some((g: string) => g.toLowerCase().includes(matchedGenre!))
+      item.genres.some((g: string) => normalizeString(g).includes(matchedGenre!))
     );
     if (genreResults.length > 0) {
-      return genreResults;
+      return genreResults.slice(0, 12);
     }
   }
 
   // 4. GENERAL SUBSTRING FILTER ON THE ENTIRE CATALOG
   const generalMatches = allItems.filter(item => 
-    item.title.toLowerCase().includes(q) ||
-    item.creator.toLowerCase().includes(q) ||
-    item.genres.some((g: string) => g.toLowerCase().includes(q)) ||
-    (item.description && item.description.toLowerCase().includes(q))
+    normalizeString(item.title).includes(normQuery) ||
+    normalizeString(item.creator).includes(normQuery) ||
+    item.genres.some((g: string) => normalizeString(g).includes(normQuery)) ||
+    (item.description && normalizeString(item.description).includes(normQuery))
   );
 
   if (generalMatches.length > 0) {
-    return generalMatches;
+    if (generalMatches.length < 6) {
+      const remaining = allItems.filter(item => !generalMatches.some(gm => gm.id === item.id));
+      return [...generalMatches, ...remaining].slice(0, 12);
+    }
+    return generalMatches.slice(0, 12);
   }
 
   // 5. LAST RESORT DYNAMIC ITEM GENERATOR (if completely unknown query)
-  const isMusicKeywords = ["song", "music", "sing", "album", "artist", "band", "soundtrack", "beat", "voice", "melody"].some(k => q.includes(k));
-  const isSeriesKeywords = ["show", "series", "season", "episode", "tv"].some(k => q.includes(k));
+  const isMusicKeywords = ["song", "music", "sing", "album", "artist", "band", "soundtrack", "beat", "voice", "melody"].some(k => normQuery.includes(k));
+  const isSeriesKeywords = ["show", "series", "season", "episode", "tv"].some(k => normQuery.includes(k));
 
   let detectedType = "movie";
   let detectedGenres = ["Drama"];
@@ -764,6 +786,7 @@ function getFallbackSearchResults(query: string): any[] {
     detectedType = "series";
     detectedGenres = ["Drama", "Mystery"];
     defaultPoster = "https://images.unsplash.com/photo-1515621061946-eff1c2a352bd?w=600";
+    defaultTrailer = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}+official+trailer`;
     detectedCreator = "Show Runner";
   }
 
@@ -795,10 +818,63 @@ function getFallbackSearchResults(query: string): any[] {
         : "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600",
       externalUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}`,
       trailerUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+trailer`
+    },
+    {
+      id: `dyn-3-${cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      type: "music",
+      title: `${cleanTitle} (Remix & Extended Version)`,
+      creator: "DJ Remix Lab",
+      description: `An official energetic electronic remix maximizing the soundscapes of ${cleanTitle}.`,
+      genres: ["Electronic", "Dance"],
+      year: "2024",
+      imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600",
+      externalUrl: `https://music.youtube.com/search?q=${encodeURIComponent(cleanTitle)}+remix`,
+      trailerUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+remix`
+    },
+    {
+      id: `dyn-4-${cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      type: "movie",
+      title: `The Story of ${cleanTitle}`,
+      creator: "Historical Docs",
+      description: `An intimate and award-winning documentary diving deep into the history and making of ${cleanTitle}.`,
+      genres: ["Documentary", "Biography"],
+      year: "2023",
+      imageUrl: "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600",
+      externalUrl: `https://www.youtube.com/results?search_query=The+story+of+${encodeURIComponent(cleanTitle)}`,
+      trailerUrl: `https://www.youtube.com/results?search_query=The+story+of+${encodeURIComponent(cleanTitle)}+official+trailer`
+    },
+    {
+      id: `dyn-5-${cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      type: "series",
+      title: `${cleanTitle} (Origins: Part One)`,
+      creator: "Show Runner",
+      description: `The acclaimed critically-reviewed spin-off miniseries exploring the genesis of the ${cleanTitle} universe.`,
+      genres: ["Drama", "Sci-Fi"],
+      year: "2026",
+      imageUrl: "https://images.unsplash.com/photo-1515621061946-eff1c2a352bd?w=600",
+      externalUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+origins`,
+      trailerUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+origins+trailer`
+    },
+    {
+      id: `dyn-6-${cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
+      type: detectedType,
+      title: `${cleanTitle} Live Session`,
+      creator: "Acoustic Sessions",
+      description: `Ambiance recordings showcasing a pristine unplugged acoustic performance of ${cleanTitle}.`,
+      genres: ["Live", "Acoustic"],
+      year: "2025",
+      imageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600",
+      externalUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+live+performance`,
+      trailerUrl: `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanTitle)}+live+performance`
     }
   ];
 
-  return dynamicItems;
+  // Pad with top real media suggestions
+  const recommendations = allItems.filter(
+    item => item.type === detectedType && !item.id.includes("rosalia")
+  );
+
+  return [...dynamicItems, ...recommendations].slice(0, 12);
 }
 
 function getFallbackItemInfo(query: string, typeHint?: any): any {
