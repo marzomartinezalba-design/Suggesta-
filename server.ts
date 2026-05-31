@@ -7,8 +7,27 @@ import { GoogleGenAI, Type } from "@google/genai";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+let localFilename = "";
+let localDirname = "";
+
+try {
+  // @ts-ignore
+  localFilename = __filename;
+  // @ts-ignore
+  localDirname = __dirname;
+} catch (e) {
+  try {
+    localFilename = fileURLToPath(import.meta.url);
+    localDirname = path.dirname(localFilename);
+  } catch (err) {
+    // Fail-safe empty values
+    localFilename = "";
+    localDirname = "";
+  }
+}
+
+const __filename = localFilename;
+const __dirname = localDirname;
 
 // Helper to lazy-load the Gemini SDK and resolve key fallbacks
 function getGeminiClient(): GoogleGenAI {
