@@ -304,7 +304,10 @@ export const dataService = {
         }
       });
       callback(merged);
-    }, (error) => handleFirestoreError(error, OperationType.GET, 'items'));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'items');
+      callback(INITIAL_ITEMS);
+    });
   },
 
   subscribeToReviews: (callback: (reviews: Review[]) => void) => {
@@ -318,7 +321,10 @@ export const dataService = {
       });
       merged.sort((a, b) => b.createdAt - a.createdAt);
       callback(merged);
-    }, (error) => handleFirestoreError(error, OperationType.GET, 'reviews'));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'reviews');
+      callback(INITIAL_REVIEWS);
+    });
   },
 
   subscribeToRecommendations: (callback: (recs: Recommendation[]) => void) => {
@@ -332,7 +338,10 @@ export const dataService = {
       });
       merged.sort((a, b) => b.createdAt - a.createdAt);
       callback(merged);
-    }, (error) => handleFirestoreError(error, OperationType.GET, 'recommendations'));
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'recommendations');
+      callback(INITIAL_RECS);
+    });
   },
 
   getStoredItems: async (): Promise<BaseItem[]> => {
