@@ -260,7 +260,8 @@ export const getBackendUrl = (): string => {
       (hostname === "localhost" && window.location.port === "3000");
 
     if (!isDevelopmentOrPreview) {
-      return "https://ais-pre-5wmbrdd4c544s76bmd574a-822615077587.europe-west2.run.app";
+      // Point to the active running development container backend containing your API secrets so your Vercel deployment connects live!
+      return "https://ais-dev-5wmbrdd4c544s76bmd574a-822615077587.europe-west2.run.app";
     }
   }
   return "";
