@@ -174,6 +174,11 @@ function clientFallbackSearch(query: string): BaseItem[] {
     (item.description && item.description.toLowerCase().includes(q))
   );
 
+  // If we found direct matches in the fallback catalog, return them immediately
+  if (matches.length > 0) {
+    return matches;
+  }
+
   // Combine with dynamic items to feel personalized
   const isMusicKeywords = ["song", "music", "sing", "album", "artist", "band", "soundtrack", "beat", "voice", "melody"].some(k => q.includes(k));
   const isSeriesKeywords = ["show", "series", "season", "episode", "tv"].some(k => q.includes(k));
@@ -231,20 +236,7 @@ function clientFallbackSearch(query: string): BaseItem[] {
     }
   ];
 
-  const uniqueItemsMap = new Map<string, BaseItem>();
-  
-  // Put matches first
-  matches.forEach(item => uniqueItemsMap.set(item.id, item));
-  // Add dynamic results
-  dynamicItems.forEach(item => uniqueItemsMap.set(item.id, item));
-  // Pad with premium backup catalog items
-  BACKUP_ITEMS.forEach(bItem => {
-    if (uniqueItemsMap.size < 12) {
-      uniqueItemsMap.set(bItem.id, bItem);
-    }
-  });
-
-  return Array.from(uniqueItemsMap.values());
+  return dynamicItems;
 }
 
 // Detect and route requests to the Cloud Run backend when running on external domains (e.g. Vercel)

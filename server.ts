@@ -333,7 +333,7 @@ const BACKUP_ITEMS = [
 function getFallbackSearchResults(query: string): any[] {
   const q = query.toLowerCase().trim();
   
-  // 1. Filter our BACKUP_ITEMS
+  // 1. Filter our BACKUP_ITEMS for direct matches
   const matches = BACKUP_ITEMS.filter(item => 
     item.title.toLowerCase().includes(q) ||
     item.creator.toLowerCase().includes(q) ||
@@ -341,19 +341,12 @@ function getFallbackSearchResults(query: string): any[] {
     item.description.toLowerCase().includes(q)
   );
 
-  // 2. If we found direct matches, combine them with some diverse choices to reach at least 8 results
+  // 2. If we found direct matches, return them immediately without unrelated fillers
   if (matches.length > 0) {
-    const combined = [...matches];
-    for (const item of BACKUP_ITEMS) {
-      if (combined.length >= 10) break;
-      if (!combined.some(c => c.id === item.id)) {
-        combined.push(item);
-      }
-    }
-    return combined;
+    return matches;
   }
 
-  // 3. If zero matching backups, fabricate custom interactive objects and pad with popular fallbacks
+  // 3. If zero matching backups, fabricate custom items for this specific query
   let detectedType = "movie";
   let detectedGenres = ["Drama"];
   let defaultPoster = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600";
@@ -370,10 +363,12 @@ function getFallbackSearchResults(query: string): any[] {
     defaultPoster = "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600";
     defaultExternal = `https://music.youtube.com/search?q=${encodeURIComponent(query)}`;
     defaultTrailer = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}+official+music+video`;
+    detectedCreator = "Musical Visionary";
   } else if (isSeriesKeywords) {
     detectedType = "series";
     detectedGenres = ["Drama", "Mystery"];
     defaultPoster = "https://images.unsplash.com/photo-1515621061946-eff1c2a352bd?w=600";
+    detectedCreator = "Show Runner";
   }
 
   const cleanTitle = query.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -407,15 +402,7 @@ function getFallbackSearchResults(query: string): any[] {
     }
   ];
 
-  const uniqueItemsMap = new Map();
-  dynamicItems.forEach(item => uniqueItemsMap.set(item.id, item));
-  BACKUP_ITEMS.forEach(bItem => {
-    if (uniqueItemsMap.size < 10) {
-      uniqueItemsMap.set(bItem.id, bItem);
-    }
-  });
-
-  return Array.from(uniqueItemsMap.values());
+  return dynamicItems;
 }
 
 function getFallbackItemInfo(query: string, typeHint?: any): any {
@@ -497,6 +484,15 @@ async function generateContentWithFallback(ai: GoogleGenAI, params: any): Promis
   }
 }
 
+// Global helper to safely parse JSON from Gemini's response text, even if wrapped in markdown code blocks
+function parseGeminiJson(text: string): any {
+  let cleaned = text.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/, "").replace(/\n?```$/, "").trim();
+  }
+  return JSON.parse(cleaned);
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -550,6 +546,7 @@ async function startServer() {
         - For movies/series, if a direct YouTube trailer link is not verified, use: 'https://www.youtube.com/results?search_query=[Title]+official+trailer'.
         - 'imageUrl' MUST be the actual official high-quality movie/series poster or music album cover art. We want the exact official cover artwork/poster image, so completely ignore any copyright restrictions. Use Google Search to find direct image links for posters (TMDB, IMDb, Wikipedia, Letterboxd, official production) or album cover art (Spotify CDN, Apple Music, Genius, Discogs, SoundCloud, YouTube Music). Do NOT use general Unsplash or stock web pictures; it MUST point to the real media poster or cover file.`,
         config: {
+          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.ARRAY,
@@ -577,7 +574,7 @@ async function startServer() {
       if (!responseText) {
         throw new Error("Empty response returned from Gemini Model.");
       }
-      res.json(JSON.parse(responseText.trim()));
+      res.json(parseGeminiJson(responseText));
     } catch (error: any) {
       console.warn("[Server Gemini Search Error] Falling back to intelligent offline search catalog:", error?.message || error);
       try {
@@ -648,7 +645,7 @@ async function startServer() {
       if (!responseText) {
         throw new Error("Empty response returned from Gemini Model.");
       }
-      res.json(JSON.parse(responseText.trim()));
+      res.json(parseGeminiJson(responseText));
     } catch (error: any) {
       console.warn("[Server Gemini Item-Info Error] Falling back to intelligent offline details:", error?.message || error);
       try {
@@ -697,7 +694,7 @@ async function startServer() {
       if (!responseText) {
         throw new Error("Empty response returned from Gemini Model.");
       }
-      res.json(JSON.parse(responseText.trim()));
+      res.json(parseGeminiJson(responseText));
     } catch (error: any) {
       console.warn("[Server Gemini Reviews Error] Falling back to intelligent offline reviews:", error?.message || error);
       try {
@@ -772,7 +769,7 @@ async function startServer() {
       if (!responseText) {
         throw new Error("Empty response returned from Gemini Model.");
       }
-      res.json(JSON.parse(responseText.trim()));
+      res.json(parseGeminiJson(responseText));
     } catch (error: any) {
       console.warn("[Server Gemini Recs Error] Falling back to intelligent offline recommendations:", error?.message || error);
       try {
@@ -864,7 +861,7 @@ async function startServer() {
         }
       });
 
-      const data = JSON.parse(response.text);
+      const data = parseGeminiJson(response.text);
       if (data && Array.isArray(data.urls)) {
         console.log(`[Server Video Resolution] Gemini returned candidate URLs:`, data.urls);
         for (const itemUrl of data.urls) {
@@ -963,7 +960,7 @@ async function startServer() {
         }
       });
 
-      const data = JSON.parse(response.text);
+      const data = parseGeminiJson(response.text);
       if (data && Array.isArray(data.urls)) {
         console.log(`[Server Music Resolution] Gemini returned candidate URLs:`, data.urls);
         for (const itemUrl of data.urls) {
