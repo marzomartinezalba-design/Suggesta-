@@ -332,121 +332,369 @@ const BACKUP_ITEMS = [
 
 function getFallbackSearchResults(query: string): any[] {
   const q = query.toLowerCase().trim();
-  
-  // 1. GENRES FALLBACKS
-  const isSciFi = q.includes("sci-fi") || q.includes("science fiction") || q.includes("espacio") || q.includes("space") || q.includes("ficción");
-  const isPop = q.includes("pop") || q.includes("música pop") || q.includes("pop music");
-  const isRock = q.includes("rock") || q.includes("rock music") || q.includes("band") || q.includes("grup");
-  const isDrama = q.includes("drama") || q.includes("dramático") || q.includes("llorar") || q.includes("melodrama");
-  const isComedy = q.includes("comedy") || q.includes("comedia") || q.includes("risa") || q.includes("gracioso");
-  const isRomance = q.includes("romance") || q.includes("amor") || q.includes("love") || q.includes("romántica");
-  const isThriller = q.includes("thriller") || q.includes("crime") || q.includes("crimen") || q.includes("suspenso") || q.includes("acción") || q.includes("action");
 
-  if (isSciFi) {
-    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Sci-Fi", "Space", "Science Fiction"].includes(g)));
+  // Expanded high-fidelity backup database to ensure gorgeous results offline
+  const EXTENDED_STATIC_ITEMS = [
+    {
+      id: "yellow",
+      type: "music",
+      title: "Yellow",
+      creator: "Coldplay",
+      description: "A legendary alternative rock anthem that launched Coldplay to international fame.",
+      genres: ["Rock", "Alternative"],
+      year: "2000",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273e0428d08cb50d754dc979140",
+      externalUrl: "https://music.youtube.com/watch?v=yKNxeF4KxyY",
+      trailerUrl: "https://www.youtube.com/watch?v=yKNxeF4KxyY"
+    },
+    {
+      id: "fix-you",
+      type: "music",
+      title: "Fix You",
+      creator: "Coldplay",
+      description: "An emotionally outstanding alternative rock ballad known for its swell-to-crescendo organ and guitars.",
+      genres: ["Rock", "Alternative"],
+      year: "2005",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b27329590059c2e118dcd37d3635",
+      externalUrl: "https://music.youtube.com/watch?v=k4V3Mo61fJM",
+      trailerUrl: "https://www.youtube.com/watch?v=k4V3Mo61fJM"
+    },
+    {
+      id: "viva-la-vida",
+      type: "music",
+      title: "Viva La Vida",
+      creator: "Coldplay",
+      description: "An orchestral pop-rock masterpiece featuring lush string arrangements and historic lyrics.",
+      genres: ["Rock", "Pop"],
+      year: "2008",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273822da33fdf081c7ffcc7a2f2",
+      externalUrl: "https://music.youtube.com/watch?v=dvgZkm1xWPE",
+      trailerUrl: "https://www.youtube.com/watch?v=dvgZkm1xWPE"
+    },
+    {
+      id: "the-scientist",
+      type: "music",
+      title: "The Scientist",
+      creator: "Coldplay",
+      description: "A melancholy piano-driven ballad about a desire to start over in a broken relationship.",
+      genres: ["Rock", "Alternative"],
+      year: "2002",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273de03be95ca8b68aa4a2ff4ef",
+      externalUrl: "https://music.youtube.com/watch?v=RB-RcX5DS5A",
+      trailerUrl: "https://www.youtube.com/watch?v=RB-RcX5DS5A"
+    },
+    {
+      id: "clocks",
+      type: "music",
+      title: "Clocks",
+      creator: "Coldplay",
+      description: "An iconic piano-riff driven alternative rock track that won Record of the Year at the Grammy Awards.",
+      genres: ["Rock", "Alternative"],
+      year: "2002",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273822da33fdf081c7ffcc7a2f2",
+      externalUrl: "https://music.youtube.com/watch?v=d020hcgZ_QI",
+      trailerUrl: "https://www.youtube.com/watch?v=d020hcgZ_QI"
+    },
+    {
+      id: "creep",
+      type: "music",
+      title: "Creep",
+      creator: "Radiohead",
+      description: "An iconic alternative rock ballad about unrequited love and self-doubt.",
+      genres: ["Rock", "Alternative"],
+      year: "1992",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b2730ca99e69da79fe37ef6ba8ee",
+      externalUrl: "https://music.youtube.com/watch?v=XFkzRNyygfk",
+      trailerUrl: "https://www.youtube.com/watch?v=XFkzRNyygfk"
+    },
+    {
+      id: "bohemian-rhapsody",
+      type: "music",
+      title: "Bohemian Rhapsody",
+      creator: "Queen",
+      description: "A legendary operatic rock suite featuring multi-section structures and majestic vocal harmonies.",
+      genres: ["Rock"],
+      year: "1975",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273c59a68da560cb6c5be8a3b50",
+      externalUrl: "https://music.youtube.com/watch?v=fJ9rUzIMcZQ",
+      trailerUrl: "https://www.youtube.com/watch?v=fJ9rUzIMcZQ"
+    },
+    {
+      id: "save-your-tears",
+      type: "music",
+      title: "Save Your Tears",
+      creator: "The Weeknd",
+      description: "An upbeat synth-pop and disco song diving into heartbreak and avoidance.",
+      genres: ["Pop", "Synthpop"],
+      year: "2020",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273c387b1ff4bc1e2eb3111b1e1",
+      externalUrl: "https://music.youtube.com/watch?v=XXYlFuWEuKI",
+      trailerUrl: "https://www.youtube.com/watch?v=XXYlFuWEuKI"
+    },
+    {
+      id: "the-hills",
+      type: "music",
+      title: "The Hills",
+      creator: "The Weeknd",
+      description: "A dark alternative R&B and trap record expressing lust, escape, and midnight desires.",
+      genres: ["Pop", "R&B"],
+      year: "2015",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b2737fbc0aa7937397984852ee3f",
+      externalUrl: "https://music.youtube.com/watch?v=yzTuBuLH9Dg",
+      trailerUrl: "https://www.youtube.com/watch?v=yzTuBuLH9Dg"
+    },
+    {
+      id: "what-was-i-made-for",
+      type: "music",
+      title: "What Was I Made For?",
+      creator: "Billie Eilish",
+      description: "A fragile, heart-wrenching piano ballad written for the Barbie film soundtrack.",
+      genres: ["Pop"],
+      year: "2023",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b2730b201f9ce06ad90bbfacff48",
+      externalUrl: "https://music.youtube.com/watch?v=cW8V0gNu5I8",
+      trailerUrl: "https://www.youtube.com/watch?v=cW8V0gNu5I8"
+    },
+    {
+      id: "ocean-eyes",
+      type: "music",
+      title: "Ocean Eyes",
+      creator: "Billie Eilish",
+      description: "A dreamy indie-pop and bedroom-pop song that first broke Billie Eilish into mainstream notice.",
+      genres: ["Pop"],
+      year: "2016",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273062630ab5820ee75cf52eb73",
+      externalUrl: "https://music.youtube.com/watch?v=viimfQi_pUw",
+      trailerUrl: "https://www.youtube.com/watch?v=viimfQi_pUw"
+    },
+    {
+      id: "blank-space",
+      type: "music",
+      title: "Blank Space",
+      creator: "Taylor Swift",
+      description: "An electro-pop masterpiece satirizing media portrayals of Swift's personal relationships.",
+      genres: ["Pop", "Synthpop"],
+      year: "2014",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273574af667794356cbd78b1735",
+      externalUrl: "https://music.youtube.com/watch?v=e-ORhEE9VVg",
+      trailerUrl: "https://www.youtube.com/watch?v=e-ORhEE9VVg"
+    },
+    {
+      id: "cruel-summer",
+      type: "music",
+      title: "Cruel Summer",
+      creator: "Taylor Swift",
+      description: "An infectious, synth-driven pop anthem describing an intense summer romance.",
+      genres: ["Pop", "Synthpop"],
+      year: "2019",
+      imageUrl: "https://i.scdn.co/image/ab67616d0000b273e787cffec20aa2a196c61860",
+      externalUrl: "https://music.youtube.com/watch?v=ic8j13gFLzc",
+      trailerUrl: "https://www.youtube.com/watch?v=ic8j13gFLzc"
+    },
+    {
+      id: "oppenheimer",
+      type: "movie",
+      title: "Oppenheimer",
+      creator: "Christopher Nolan",
+      description: "The biographical epic chronicling the life of J. Robert Oppenheimer and his role in the development of the atomic bomb.",
+      genres: ["Drama"],
+      year: "2023",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/8Gxv2gSjBeYFwt6ZidR29Clq7Sg.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/872585-oppenheimer",
+      trailerUrl: "https://www.youtube.com/watch?v=uYPbbksJxIg"
+    },
+    {
+      id: "dunkirk",
+      type: "movie",
+      title: "Dunkirk",
+      creator: "Christopher Nolan",
+      description: "Allied soldiers from Belgium, the British Empire, and France are surrounded by the German Army and evacuated during a fierce World War II battle.",
+      genres: ["Action", "Drama"],
+      year: "2017",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/ebZg3aCO9b4vo3Wcc67bZ9I7Z6B.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/374720-dunkirk",
+      trailerUrl: "https://www.youtube.com/watch?v=F-eMt3GrSL8"
+    },
+    {
+      id: "inglourious-basterds",
+      type: "movie",
+      title: "Inglourious Basterds",
+      creator: "Quentin Tarantino",
+      description: "In Nazi-occupied France during World War II, a group of Jewish U.S. soldiers plan to assassinate German leaders.",
+      genres: ["Action", "Drama"],
+      year: "2009",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/w9g3i6m7r8unfofm99g98dfvsm8.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/19995-inglourious-basterds",
+      trailerUrl: "https://www.youtube.com/watch?v=KnrRy6kSFI0"
+    },
+    {
+      id: "django-unchained",
+      type: "movie",
+      title: "Django Unchained",
+      creator: "Quentin Tarantino",
+      description: "With the help of a German bounty-hunter, a freed slave sets out to rescue his wife from a brutal Mississippi plantation owner.",
+      genres: ["Drama"],
+      year: "2012",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/78N9h07m887b47zDscO06g77651.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/68718-django-unchained",
+      trailerUrl: "https://www.youtube.com/watch?v=0fUCuvNlOCg"
+    },
+    {
+      id: "jurassic-park",
+      type: "movie",
+      title: "Jurassic Park",
+      creator: "Steven Spielberg",
+      description: "A pragmatic paleontologist touring an island dinosaur theme park must protect visitors when a power failure unleashes the beasts.",
+      genres: ["Sci-Fi", "Adventure"],
+      year: "1993",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/o90696316262w874312693898216.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/329-jurassic-park",
+      trailerUrl: "https://www.youtube.com/watch?v=QWBKEDPE_aM"
+    },
+    {
+      id: "saving-private-ryan",
+      type: "movie",
+      title: "Saving Private Ryan",
+      creator: "Steven Spielberg",
+      description: "Following the Normandy Landings, a group of U.S. soldiers go behind enemy lines to retrieve a paratrooper whose brothers have been killed in action.",
+      genres: ["Drama"],
+      year: "1998",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/uq839Lzi8fCHfctclv6v89CH0vO.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/857-saving-private-ryan",
+      trailerUrl: "https://www.youtube.com/watch?v=9CzZ8_O_yY4"
+    },
+    {
+      id: "the-matrix",
+      type: "movie",
+      title: "The Matrix",
+      creator: "Lana Wachowski, Lilly Wachowski (Starring Keanu Reeves)",
+      description: "When a computer hacker Neo discovers the shocking truth that the life he knows is an elaborate virtual deception, he decides to fight.",
+      genres: ["Sci-Fi", "Action"],
+      year: "1999",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/f89U3w7n0gjf6s683e9873d6e50.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/603-the-matrix",
+      trailerUrl: "https://www.youtube.com/watch?v=vKQi3bBA1y8"
+    },
+    {
+      id: "john-wick",
+      type: "movie",
+      title: "John Wick",
+      creator: "Chad Stahelski (Starring Keanu Reeves)",
+      description: "An ex-hit-man comes out of retirement to track down the gangsters that killed his dog and took everything from him.",
+      genres: ["Action", "Thriller"],
+      year: "2014",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/fZ7b7b1b5e679803ae.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/245891-john-wick",
+      trailerUrl: "https://www.youtube.com/watch?v=2AUmvWm5R1s"
+    },
+    {
+      id: "fight-club",
+      type: "movie",
+      title: "Fight Club",
+      creator: "David Fincher (Starring Brad Pitt)",
+      description: "An insomniac office worker and a devil-may-care soapmaker form an underground fight club that evolves into much more.",
+      genres: ["Drama", "Thriller"],
+      year: "1999",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/bptfVcl691qqO66vms68a8fct.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/550-fight-club",
+      trailerUrl: "https://www.youtube.com/watch?v=qtRKdVHc-cE"
+    },
+    {
+      id: "seven",
+      type: "movie",
+      title: "Se7en",
+      creator: "David Fincher (Starring Brad Pitt)",
+      description: "Two detectives, a rookie and a veteran, hunt a serial killer who uses the seven deadly sins as his motives.",
+      genres: ["Thriller", "Crime"],
+      year: "1995",
+      imageUrl: "https://image.tmdb.org/t/p/w600_and_h900_bestv2/or687786g987uivr98u.jpg",
+      externalUrl: "https://www.themoviedb.org/movie/47-seven",
+      trailerUrl: "https://www.youtube.com/watch?v=znmZoYm7tGM"
+    }
+  ];
+
+  // Combine standard BACKUP_ITEMS and our high-fidelity EXTENDED_STATIC_ITEMS deduplicating safely
+  const uniqueItemsMap = new Map();
+  for (const item of [...BACKUP_ITEMS, ...EXTENDED_STATIC_ITEMS]) {
+    const key = `${item.title.toLowerCase()}|||${item.creator.toLowerCase()}`;
+    uniqueItemsMap.set(key, item);
   }
-  if (isPop) {
-    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Pop", "Synthpop", "Dance-Pop", "Electropop"].includes(g)));
-  }
-  if (isRock) {
-    // Coldplay and alternative rock
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("coldplay") || item.genres.includes("Rock") || item.id === "creep" || item.id === "bohemian-rhapsody" || item.genres.includes("Alternative"));
-  }
-  if (isDrama) {
-    return BACKUP_ITEMS.filter(item => item.genres.includes("Drama"));
-  }
-  if (isComedy) {
-    return BACKUP_ITEMS.filter(item => item.genres.includes("Comedy") || item.genres.includes("Teen"));
-  }
-  if (isRomance) {
-    return BACKUP_ITEMS.filter(item => item.genres.includes("Romance") || item.genres.includes("Love"));
-  }
-  if (isThriller) {
-    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Action", "Thriller", "Crime"].includes(g)));
+  const allItems: any[] = Array.from(uniqueItemsMap.values());
+
+  // Define exact match & close keywords for genre identification
+  const genreKeywords: Record<string, string[]> = {
+    "sci-fi": ["sci-fi", "science fiction", "ciencia ficción", "espacio", "space", "ficción", "fiction", "alien", "galaxy"],
+    "action": ["action", "acción", "fight", "combate", "disparos", "peleas"],
+    "drama": ["drama", "dramático", "llorar", "melodrama", "sad", "triste"],
+    "comedy": ["comedy", "comedia", "risa", "funny", "gracioso", "humor", "bromas"],
+    "romance": ["romance", "romántica", "romantic", "amor", "love", "pareja"],
+    "thriller": ["thriller", "suspense", "crimen", "crime", "terro", "horror", "miedo"],
+    "pop": ["pop", "música pop", "pop music", "cantante pop"],
+    "rock": ["rock", "música rock", "indie", "alternative", "band"]
+  };
+
+  // 1. FIRST, ATTEMPT TO FIND SPECIFIC WORK/TITLE MATCH (Exact or close substring)
+  const exactTitleMatch = allItems.find(
+    item => q === item.title.toLowerCase()
+  );
+  if (exactTitleMatch) {
+    const related = allItems.filter(
+      item => item.id !== exactTitleMatch.id && 
+              (item.type === exactTitleMatch.type || item.genres.some((g: string) => exactTitleMatch.genres.includes(g)))
+    );
+    return [exactTitleMatch, ...related].slice(0, 12);
   }
 
-  // 2. DETECT POPULAR ARTISTS / CREATORS
-  if (q.includes("coldplay")) {
-    return [
-      {
-        id: "yellow",
-        type: "music",
-        title: "Yellow",
-        creator: "Coldplay",
-        description: "A legendary alternative rock anthem that launched Coldplay to international fame.",
-        genres: ["Rock", "Alternative"],
-        year: "2000",
-        imageUrl: "https://i.scdn.co/image/ab67616d0000b273e0428d08cb50d754dc979140",
-        externalUrl: "https://music.youtube.com/watch?v=yKNxeF4KxyY",
-        trailerUrl: "https://www.youtube.com/watch?v=yKNxeF4KxyY"
-      },
-      {
-        id: "fix-you",
-        type: "music",
-        title: "Fix You",
-        creator: "Coldplay",
-        description: "An emotionally powerful rock ballad known for its swell-to-crescendo organ and guitars.",
-        genres: ["Rock", "Alternative"],
-        year: "2005",
-        imageUrl: "https://i.scdn.co/image/ab67616d0000b27329590059c2e118dcd37d3635",
-        externalUrl: "https://music.youtube.com/watch?v=k4V3Mo61fJM",
-        trailerUrl: "https://www.youtube.com/watch?v=k4V3Mo61fJM"
-      },
-      {
-        id: "viva-la-vida",
-        type: "music",
-        title: "Viva La Vida",
-        creator: "Coldplay",
-        description: "An orchestral pop-rock masterpiece featuring lush string arrangements and historic lyrics.",
-        genres: ["Rock", "Orchestral Pop"],
-        year: "2008",
-        imageUrl: "https://i.scdn.co/image/ab67616d0000b273822da33fdf081c7ffcc7a2f2",
-        externalUrl: "https://music.youtube.com/watch?v=dvgZkm1xWPE",
-        trailerUrl: "https://www.youtube.com/watch?v=dvgZkm1xWPE"
-      }
-    ];
+  const partialTitleMatch = allItems.find(
+    item => item.title.toLowerCase().includes(q) || q.includes(item.title.toLowerCase())
+  );
+  if (partialTitleMatch) {
+    const related = allItems.filter(
+      item => item.id !== partialTitleMatch.id && 
+              (item.type === partialTitleMatch.type || item.genres.some((g: string) => partialTitleMatch.genres.includes(g)))
+    );
+    return [partialTitleMatch, ...related].slice(0, 12);
   }
 
-  if (q.includes("nolan")) {
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("nolan"));
+  // 2. SECOND, ATTEMPT TO FIND ARTIST/CREATOR MATCH (e.g. "Coldplay", "Nolan", "Keanu", "Pitt")
+  const artistMatches = allItems.filter(
+    item => item.creator.toLowerCase().includes(q) || q.includes(item.creator.toLowerCase())
+  );
+  if (artistMatches.length > 0) {
+    return artistMatches;
   }
 
-  if (q.includes("weeknd")) {
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("weeknd"));
+  // 3. THIRD, ATTEMPT TO FIND GENRE MATCH 
+  let matchedGenre: string | null = null;
+  for (const [genreName, keywords] of Object.entries(genreKeywords)) {
+    if (keywords.some(kw => q.includes(kw))) {
+      matchedGenre = genreName;
+      break;
+    }
   }
 
-  if (q.includes("tarantino")) {
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("tarantino"));
+  if (matchedGenre) {
+    const genreResults = allItems.filter(item => 
+      item.genres.some((g: string) => g.toLowerCase().includes(matchedGenre!))
+    );
+    if (genreResults.length > 0) {
+      return genreResults;
+    }
   }
 
-  if (q.includes("billie eilish") || q.includes("eilish")) {
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("eilish"));
-  }
-
-  if (q.includes("sheeran")) {
-    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("sheeran"));
-  }
-
-  // 3. DETECT SPECIFIC KEYWORDS FOR DIRECT WORK MATCHES
-  const exactMatch = BACKUP_ITEMS.find(item => item.title.toLowerCase() === q || q.includes(item.title.toLowerCase()));
-  if (exactMatch) {
-    const related = BACKUP_ITEMS.filter(item => item.id !== exactMatch.id && (item.type === exactMatch.type || item.genres.some(g => exactMatch.genres.includes(g))));
-    return [exactMatch, ...related];
-  }
-
-  // 4. GENERAL SUBSTRING FILTER ON THE CATALOG
-  const matches = BACKUP_ITEMS.filter(item => 
+  // 4. GENERAL SUBSTRING FILTER ON THE ENTIRE CATALOG
+  const generalMatches = allItems.filter(item => 
     item.title.toLowerCase().includes(q) ||
     item.creator.toLowerCase().includes(q) ||
     item.genres.some((g: string) => g.toLowerCase().includes(q)) ||
-    item.description.toLowerCase().includes(q)
+    (item.description && item.description.toLowerCase().includes(q))
   );
 
-  if (matches.length > 0) {
-    return matches;
+  if (generalMatches.length > 0) {
+    return generalMatches;
   }
 
-  // 5. LAST RESORT DYNAMIC ITEM GENERATOR
+  // 5. LAST RESORT DYNAMIC ITEM GENERATOR (if completely unknown query)
   const isMusicKeywords = ["song", "music", "sing", "album", "artist", "band", "soundtrack", "beat", "voice", "melody"].some(k => q.includes(k));
   const isSeriesKeywords = ["show", "series", "season", "episode", "tv"].some(k => q.includes(k));
 
@@ -479,7 +727,7 @@ function getFallbackSearchResults(query: string): any[] {
       type: detectedType,
       title: cleanTitle,
       creator: detectedCreator,
-      description: `Exploring the premium quality, artistic style, and global influence of ${cleanTitle}.`,
+      description: `A masterclass showcasing the rich design, styling, and cultural influence of ${cleanTitle}.`,
       genres: detectedGenres,
       year: "2024",
       imageUrl: defaultPoster,
@@ -489,9 +737,9 @@ function getFallbackSearchResults(query: string): any[] {
     {
       id: `dyn-2-${cleanTitle.toLowerCase().replace(/[^a-z0-9]/g, '-')}`,
       type: detectedType === "music" ? "movie" : "music",
-      title: detectedType === "music" ? `${cleanTitle} (Official Soundtrack)` : `${cleanTitle} - The Main Theme`,
+      title: detectedType === "music" ? `${cleanTitle} (Official Soundtrack)` : `${cleanTitle} - Main Theme`,
       creator: "Creative Studio",
-      description: `A stellar artistic counterpart and contemporary thematic view inspired by ${cleanTitle}.`,
+      description: `A stunning artistic and thematic counterpart inspired by the premium atmosphere of ${cleanTitle}.`,
       genres: ["Alternative", "Indie"],
       year: "2025",
       imageUrl: detectedType === "music"
