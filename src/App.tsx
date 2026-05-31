@@ -39,7 +39,8 @@ const ImageWithFallback = ({
   type, 
   title, 
   creator, 
-  className 
+  className,
+  showDetails = false
 }: { 
   src?: string; 
   alt: string; 
@@ -47,6 +48,7 @@ const ImageWithFallback = ({
   title?: string; 
   creator?: string; 
   className?: string; 
+  showDetails?: boolean;
 }) => {
   const resolvedTitle = title || alt || 'Untitled';
   const resolvedCreator = creator || (type === 'music' ? 'Curated Artist' : 'Curated Film');
@@ -122,29 +124,31 @@ const ImageWithFallback = ({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10 opacity-75 group-hover/card:opacity-85 transition-opacity duration-300 pointer-events-none" />
 
       {/* Details overlay bar */}
-      <div className="relative z-10 p-3.5 flex flex-col gap-1 pointer-events-none">
-        <div className="flex items-center gap-1.5 opacity-90">
-          {isMusic ? (
-            <span className="flex items-center justify-center p-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-              <Music className="w-2.5 h-2.5 text-emerald-400" />
+      {showDetails && (
+        <div className="relative z-10 p-3.5 flex flex-col gap-1 pointer-events-none">
+          <div className="flex items-center gap-1.5 opacity-90">
+            {isMusic ? (
+              <span className="flex items-center justify-center p-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
+                <Music className="w-2.5 h-2.5 text-emerald-400" />
+              </span>
+            ) : (
+              <span className="flex items-center justify-center p-1 rounded-full bg-amber-500/15 border border-amber-500/30">
+                <Play className="w-2.5 h-2.5 text-amber-400 fill-amber-400 translate-x-[0.2px]" />
+              </span>
+            )}
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-neutral-300 font-mono">
+              {isMusic ? 'Song Track' : 'Feature Film'}
             </span>
-          ) : (
-            <span className="flex items-center justify-center p-1 rounded-full bg-amber-500/15 border border-amber-500/30">
-              <Play className="w-2.5 h-2.5 text-amber-400 fill-amber-400 translate-x-[0.2px]" />
-            </span>
-          )}
-          <span className="text-[9px] font-semibold uppercase tracking-wider text-neutral-300 font-mono">
-            {isMusic ? 'Song Track' : 'Feature Film'}
+          </div>
+
+          <h4 className="text-sm font-bold text-white tracking-tight leading-snug line-clamp-1 drop-shadow-md">
+            {resolvedTitle}
+          </h4>
+          <span className="text-xs text-neutral-300 font-medium line-clamp-1 drop-shadow-sm">
+            {resolvedCreator}
           </span>
         </div>
-
-        <h4 className="text-sm font-bold text-white tracking-tight leading-snug line-clamp-1 drop-shadow-md">
-          {resolvedTitle}
-        </h4>
-        <span className="text-xs text-neutral-300 font-medium line-clamp-1 drop-shadow-sm">
-          {resolvedCreator}
-        </span>
-      </div>
+      )}
 
       {/* Subtle hover overlay accent light */}
       <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 pointer-events-none" />

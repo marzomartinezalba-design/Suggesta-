@@ -160,6 +160,54 @@ const BACKUP_ITEMS: BaseItem[] = [
     year: '1995',
     externalUrl: 'https://www.themoviedb.org/movie/9603-clueless',
     trailerUrl: "https://www.youtube.com/watch?v=yMc3PffZPh0"
+  },
+  {
+    id: "rosalia-despecha",
+    type: "music",
+    title: "DESPECHÁ",
+    creator: "Rosalía",
+    description: "An infectious, chart-topping summer anthem blending mambo, electropop, and Latin pop by the Spanish singer-songwriter Rosalía.",
+    genres: ["Pop", "Latin", "Electronic"],
+    year: "2022",
+    imageUrl: "https://i.scdn.co/image/ab67616d0000b273b54dcedd6d1b7ee2e27ed603",
+    externalUrl: "https://music.youtube.com/watch?v=yYSTpT_S0-Y",
+    trailerUrl: "https://www.youtube.com/watch?v=yYSTpT_S0-Y"
+  },
+  {
+    id: "rosalia-malamente",
+    type: "music",
+    title: "Malamente",
+    creator: "Rosalía",
+    description: "The breakthrough flamenco-pop masterpiece with alternative R&B elements that launched Rosalía to international global acclaim.",
+    genres: ["Pop", "Nuevo Flamenco", "Alternative"],
+    year: "2018",
+    imageUrl: "https://i.scdn.co/image/ab67616d0000b27393437de91d29d91f2400e960",
+    externalUrl: "https://music.youtube.com/watch?v=Rht7rBHuN7g",
+    trailerUrl: "https://www.youtube.com/watch?v=Rht7rBHuN7g"
+  },
+  {
+    id: "rosalia-bizcochito",
+    type: "music",
+    title: "BIZCOCHITO",
+    creator: "Rosalía",
+    description: "A playful, hyperpop-influenced Latin track from her Grammy-winning and critically acclaimed album MOTOMAMI.",
+    genres: ["Pop", "Latin Avant-garde", "Synthpop"],
+    year: "2022",
+    imageUrl: "https://i.scdn.co/image/ab67616d0000b273b54dcedd6d1b7ee2e27ed603",
+    externalUrl: "https://music.youtube.com/watch?v=a5Z96y8A8V0",
+    trailerUrl: "https://www.youtube.com/watch?v=a5Z96y8A8V0"
+  },
+  {
+    id: "rosalia-la-fama",
+    type: "music",
+    title: "La Fama (feat. The Weeknd)",
+    creator: "Rosalía",
+    description: "A sultry and haunting bachata track exploring the obsession, tragedy, and superficiality of fame.",
+    genres: ["Pop", "Latin", "Bachata"],
+    year: "2021",
+    imageUrl: "https://i.scdn.co/image/ab67616d0000b273b54dcedd6d1b7ee2e27ed603",
+    externalUrl: "https://music.youtube.com/watch?v=e-CEd4VUXLg",
+    trailerUrl: "https://www.youtube.com/watch?v=e-CEd4VUXLg"
   }
 ];
 
