@@ -534,9 +534,20 @@ async function startServer() {
         - TO PREVENT "VIDEO UNAVAILABLE" ERRORS: Use the Search tool to verify real, current watch IDs. Always prefer uploads from official accounts (Vevo, official artist channel, MGM, Warner Bros, Sony, Universal, Disney, Netflix, HBO, etc.). These videos are globally distributed and are never blocked or deleted.
         - DO NOT hallucinate IDs.
         
-        CRITICAL INSTRUCTIONS:
-        1. If the query is an ARTIST, return their top 10 most iconic songs as 'music' items with both links.
-        2. If the query is a FRANCHISE, return the main films.
+        INTENT-BASED QUERY GUIDELINES:
+        1. If the query is or contains an ARTIST, CREATOR, BAND, DIRECTOR, or ACTOR (e.g. Coldplay, Keanu Reeves, Christopher Nolan, Quentin Tarantino, Taylor Swift, Billie Eilish):
+           - Return their actual WORKS (movies directed/produced, movies starring in, series made, or songs/albums recorded) matching their real-life career.
+           - For example:
+             * For a music artist (e.g. Coldplay, Taylor Swift, Billie Eilish): return 10-12 of their top iconic songs or music videos as 'music' items.
+             * For an actor/director (e.g. Keanu Reeves, Christopher Nolan, Quentin Tarantino, Brad Pitt): return 10-12 of their outstanding movies/series as 'movie' or 'series' items (do not classify these film/television works as music).
+        
+        2. If the query is a specific WORK (e.g. "Inception", "Gravity", "Blinding Lights", "Breaking Bad"):
+           - That specific work itself MUST be the very first item in the returned list.
+           - The remaining 9-11 items must be highly related works (sequels, prequels, soundtracks, spin-offs, or other outstanding works within similar genres or by the same creator).
+           
+        3. If the query represents a GENRE (e.g. "Sci-Fi", "Pop", "Rock", "Horror", "Comedy", "Romance", "Thriller", "Action", "Drama", "Anime"):
+           - All 10-12 items returned must clearly belong to or be classifiable under that specific genre, and have it listed in their "genres" array.
+           - Return a balanced mix of outstanding movies, series, and songs that are highly representative of that genre.
         
         Provide high-quality metadata for each.
         Return direct JSON list: id, type (music|movie|series), title, creator, description(1 sentence), genres[], year, imageUrl, externalUrl (YouTube Music/TMDB/Wiki), and trailerUrl (YouTube).
