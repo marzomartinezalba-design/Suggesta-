@@ -550,7 +550,6 @@ async function startServer() {
         - For movies/series, if a direct YouTube trailer link is not verified, use: 'https://www.youtube.com/results?search_query=[Title]+official+trailer'.
         - 'imageUrl' MUST be the actual official high-quality movie/series poster or music album cover art. We want the exact official cover artwork/poster image, so completely ignore any copyright restrictions. Use Google Search to find direct image links for posters (TMDB, IMDb, Wikipedia, Letterboxd, official production) or album cover art (Spotify CDN, Apple Music, Genius, Discogs, SoundCloud, YouTube Music). Do NOT use general Unsplash or stock web pictures; it MUST point to the real media poster or cover file.`,
         config: {
-          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.ARRAY,
@@ -625,7 +624,6 @@ async function startServer() {
         JSON OUTPUT FORMAT:
         ${typeHint ? `Note: It's likely a ${typeHint}.` : ''}`,
         config: {
-          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -739,7 +737,6 @@ async function startServer() {
         
         Format as JSON list with targetItem (BaseItem fields), reason (1 sentence), and userName.`,
         config: {
-          tools: [{ googleSearch: {} }],
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.ARRAY,
