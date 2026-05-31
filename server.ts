@@ -149,6 +149,38 @@ async function checkYoutubeVideoPlayable(url: string): Promise<boolean> {
   }
 }
 
+// Robust helper to make generateContent requests with auto-fallback when standard tools or general query fails
+async function generateContentWithFallback(ai: GoogleGenAI, params: any): Promise<any> {
+  try {
+    console.log(`[Gemini Request] Attempting generateContent with model ${params.model || "gemini-3.5-flash"}`);
+    const response = await ai.models.generateContent(params);
+    return response;
+  } catch (error: any) {
+    console.error(`[Gemini Request Error]: ${error?.message || JSON.stringify(error)}`);
+    
+    // Check if we can retry without tools/googleSearch (since grounding tool often triggers 429 quota exhaustion)
+    if (params.config && params.config.tools) {
+      console.log("[Gemini Request] Retrying WITHOUT search tools because of error/quota limit...");
+      const fallbackParams = {
+        ...params,
+        config: {
+          ...params.config,
+          tools: undefined // Disable googleSearch tool!
+        }
+      };
+      try {
+        const response = await ai.models.generateContent(fallbackParams);
+        return response;
+      } catch (innerError: any) {
+        console.error(`[Gemini Fallback Request Error]: ${innerError?.message || JSON.stringify(innerError)}`);
+        throw innerError;
+      }
+    }
+    
+    throw error;
+  }
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -166,7 +198,7 @@ async function startServer() {
       console.log(`[Server Gemini Search] searching for: "${query}"`);
       const ai = getGeminiClient();
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Search for cultural items (movies, music/artists, or series) matching the query: "${query}". 
         
@@ -237,7 +269,7 @@ async function startServer() {
       console.log(`[Server Gemini Item-Info] Generating details for: "${query}" (Hint: ${typeHint})`);
       const ai = getGeminiClient();
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Find the precise official YouTube Music and YouTube video links for the song/item: "${query}". 
         
@@ -303,7 +335,7 @@ async function startServer() {
       console.log(`[Server Gemini Reviews] Generating reviews for: "${item.title}"`);
       const ai = getGeminiClient();
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Generate 3 diverse, very short reviews for "${item.title}" by ${item.creator || 'unknown'}. 
         Vary sentiments. JSON list: userName, rating, comment (1 sentence max). SPEED is priority.`,
@@ -346,7 +378,7 @@ async function startServer() {
       console.log(`[Server Gemini Recs] Generating recommendations for Item: "${item.title}"`);
       const ai = getGeminiClient();
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Suggest 3 high-quality items for fans of "${item.title}". 
         
@@ -459,7 +491,7 @@ async function startServer() {
 
       console.log(`[Server Video Resolution] Searching alternatives for down video: ${queryTerm}`);
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Find 3 alternative, high-quality, direct, playable official YouTube watch URLs (format: https://www.youtube.com/watch?v=...) for: "${t}" ${c ? `by ${c}` : ""}.
         
@@ -558,7 +590,7 @@ async function startServer() {
       const queryTerm = `site:music.youtube.com watch "${t}" "${c}"`;
       console.log(`[Server Music Resolution] Searching alternatives for: ${queryTerm}`);
 
-      const response = await ai.models.generateContent({
+      const response = await generateContentWithFallback(ai, {
         model: "gemini-3.5-flash",
         contents: `Find 3 alternative, direct, active, playable official YouTube Music track URLs (format: https://music.youtube.com/watch?v=...) for: "${t}" by ${c}.
         
