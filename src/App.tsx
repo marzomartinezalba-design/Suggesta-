@@ -285,34 +285,7 @@ export default function App() {
           ));
         }
 
-        setSearchResults(prev => {
-          const combined = [...prev, ...aiResults];
-          const uniqueItemsMap = new Map();
-          for (const item of combined) {
-            const key = `${item.title.toLowerCase()}-${item.creator.toLowerCase()}`;
-            const existing = uniqueItemsMap.get(key);
-            if (!existing) {
-              uniqueItemsMap.set(key, item);
-            } else {
-              const existingUrl = existing.externalUrl || '';
-              const newUrl = item.externalUrl || '';
-              
-              const isYoutube = (url: string) => url.includes('youtube.com') || url.includes('youtu.be');
-              const isTMDB = (url: string) => url.includes('themoviedb.org') || url.includes('tmdb.org');
-              
-              const existingIsValid = existingUrl.startsWith('http') && (isYoutube(existingUrl) || isTMDB(existingUrl));
-              const newIsValid = newUrl.startsWith('http') && (isYoutube(newUrl) || isTMDB(newUrl));
-              
-              if (!existingIsValid && newIsValid) {
-                uniqueItemsMap.set(key, item);
-                if (auth.currentUser) {
-                  dataService.saveItem(item).catch(err => console.warn("Background update sync failed:", err));
-                }
-              }
-            }
-          }
-          return Array.from(uniqueItemsMap.values());
-        });
+        setSearchResults(aiResults);
       }
     } catch (err) {
       console.error("AI Search Error:", err);

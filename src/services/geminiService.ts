@@ -166,7 +166,108 @@ const BACKUP_ITEMS: BaseItem[] = [
 function clientFallbackSearch(query: string): BaseItem[] {
   const q = query.toLowerCase().trim();
   
-  // Find any matches in backup items
+  // 1. GENRES FALLBACKS
+  const isSciFi = q.includes("sci-fi") || q.includes("science fiction") || q.includes("espacio") || q.includes("space") || q.includes("ficción");
+  const isPop = q.includes("pop") || q.includes("música pop") || q.includes("pop music");
+  const isRock = q.includes("rock") || q.includes("rock music") || q.includes("band") || q.includes("grup");
+  const isDrama = q.includes("drama") || q.includes("dramático") || q.includes("llorar") || q.includes("melodrama");
+  const isComedy = q.includes("comedy") || q.includes("comedia") || q.includes("risa") || q.includes("gracioso");
+  const isRomance = q.includes("romance") || q.includes("amor") || q.includes("love") || q.includes("romántica");
+  const isThriller = q.includes("thriller") || q.includes("crime") || q.includes("crimen") || q.includes("suspenso") || q.includes("acción") || q.includes("action");
+
+  if (isSciFi) {
+    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Sci-Fi", "Space", "Science Fiction"].includes(g)));
+  }
+  if (isPop) {
+    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Pop", "Synthpop", "Dance-Pop", "Electropop"].includes(g)));
+  }
+  if (isRock) {
+    // Coldplay and alternative rock
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("coldplay") || item.genres.includes("Rock") || item.id === "creep" || item.id === "bohemian-rhapsody" || item.genres.includes("Alternative"));
+  }
+  if (isDrama) {
+    return BACKUP_ITEMS.filter(item => item.genres.includes("Drama"));
+  }
+  if (isComedy) {
+    return BACKUP_ITEMS.filter(item => item.genres.includes("Comedy") || item.genres.includes("Teen"));
+  }
+  if (isRomance) {
+    return BACKUP_ITEMS.filter(item => item.genres.includes("Romance") || item.genres.includes("Love"));
+  }
+  if (isThriller) {
+    return BACKUP_ITEMS.filter(item => item.genres.some(g => ["Action", "Thriller", "Crime"].includes(g)));
+  }
+
+  // 2. DETECT POPULAR ARTISTS / CREATORS
+  if (q.includes("coldplay")) {
+    return [
+      {
+        id: "yellow",
+        type: "music",
+        title: "Yellow",
+        creator: "Coldplay",
+        description: "A legendary alternative rock anthem that launched Coldplay to international fame.",
+        genres: ["Rock", "Alternative"],
+        year: "2000",
+        imageUrl: "https://i.scdn.co/image/ab67616d0000b273e0428d08cb50d754dc979140",
+        externalUrl: "https://music.youtube.com/watch?v=yKNxeF4KxyY",
+        trailerUrl: "https://www.youtube.com/watch?v=yKNxeF4KxyY"
+      },
+      {
+        id: "fix-you",
+        type: "music",
+        title: "Fix You",
+        creator: "Coldplay",
+        description: "An emotionally powerful rock ballad known for its swell-to-crescendo organ and guitars.",
+        genres: ["Rock", "Alternative"],
+        year: "2005",
+        imageUrl: "https://i.scdn.co/image/ab67616d0000b27329590059c2e118dcd37d3635",
+        externalUrl: "https://music.youtube.com/watch?v=k4V3Mo61fJM",
+        trailerUrl: "https://www.youtube.com/watch?v=k4V3Mo61fJM"
+      },
+      {
+        id: "viva-la-vida",
+        type: "music",
+        title: "Viva La Vida",
+        creator: "Coldplay",
+        description: "An orchestral pop-rock masterpiece featuring lush string arrangements and historic lyrics.",
+        genres: ["Rock", "Orchestral Pop"],
+        year: "2008",
+        imageUrl: "https://i.scdn.co/image/ab67616d0000b273822da33fdf081c7ffcc7a2f2",
+        externalUrl: "https://music.youtube.com/watch?v=dvgZkm1xWPE",
+        trailerUrl: "https://www.youtube.com/watch?v=dvgZkm1xWPE"
+      }
+    ];
+  }
+
+  if (q.includes("nolan")) {
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("nolan"));
+  }
+
+  if (q.includes("weeknd")) {
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("weeknd"));
+  }
+
+  if (q.includes("tarantino")) {
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("tarantino"));
+  }
+
+  if (q.includes("billie eilish") || q.includes("eilish")) {
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("eilish"));
+  }
+
+  if (q.includes("sheeran")) {
+    return BACKUP_ITEMS.filter(item => item.creator.toLowerCase().includes("sheeran"));
+  }
+
+  // 3. DETECT SPECIFIC KEYWORDS FOR DIRECT WORK MATCHES
+  const exactMatch = BACKUP_ITEMS.find(item => item.title.toLowerCase() === q || q.includes(item.title.toLowerCase()));
+  if (exactMatch) {
+    const related = BACKUP_ITEMS.filter(item => item.id !== exactMatch.id && (item.type === exactMatch.type || item.genres.some(g => exactMatch.genres.includes(g))));
+    return [exactMatch, ...related];
+  }
+
+  // 4. GENERAL SUBSTRING FILTER ON THE CATALOG
   const matches = BACKUP_ITEMS.filter(item => 
     item.title.toLowerCase().includes(q) ||
     item.creator.toLowerCase().includes(q) ||
@@ -174,12 +275,11 @@ function clientFallbackSearch(query: string): BaseItem[] {
     (item.description && item.description.toLowerCase().includes(q))
   );
 
-  // If we found direct matches in the fallback catalog, return them immediately
   if (matches.length > 0) {
     return matches;
   }
 
-  // Combine with dynamic items to feel personalized
+  // 5. LAST RESORT DYNAMIC ITEM GENERATOR
   const isMusicKeywords = ["song", "music", "sing", "album", "artist", "band", "soundtrack", "beat", "voice", "melody"].some(k => q.includes(k));
   const isSeriesKeywords = ["show", "series", "season", "episode", "tv"].some(k => q.includes(k));
 
