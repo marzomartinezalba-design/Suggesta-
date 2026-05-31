@@ -10,7 +10,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { AppState, BaseItem, Review, Recommendation, ItemType, UserProfile } from './types';
 import { dataService } from './services/dataService';
 import { auth, loginWithGoogle, logout as firebaseLogout } from './lib/firebase';
-import { generateItemInfo, searchItemsAI, generateCommunityReviews, generateCommunityRecommendations } from './services/geminiService';
+import { generateItemInfo, searchItemsAI, generateCommunityReviews, generateCommunityRecommendations, getBackendUrl } from './services/geminiService';
 const SuggestaLogo = ({ className, size = 24 }: { className?: string; size?: number }) => (
   <svg 
     viewBox="0 0 100 100" 
@@ -473,7 +473,7 @@ export default function App() {
 
     // Resolve through play-video server proxy if we have metadata to guarantee working links
     if (item) {
-      return `/api/play-video?title=${encodeURIComponent(item.title)}&creator=${encodeURIComponent(item.creator || '')}&type=${item.type}&originalUrl=${encodeURIComponent(url)}`;
+      return `${getBackendUrl()}/api/play-video?title=${encodeURIComponent(item.title)}&creator=${encodeURIComponent(item.creator || '')}&type=${item.type}&originalUrl=${encodeURIComponent(url)}`;
     }
 
     const urlLower = url.toLowerCase();
@@ -501,7 +501,7 @@ export default function App() {
     const url = item.externalUrl || '';
     
     // Resolve through play-music server proxy to guarantee a playable YouTube Music link
-    return `/api/play-music?title=${encodeURIComponent(item.title)}&creator=${encodeURIComponent(item.creator || '')}&originalUrl=${encodeURIComponent(url)}`;
+    return `${getBackendUrl()}/api/play-music?title=${encodeURIComponent(item.title)}&creator=${encodeURIComponent(item.creator || '')}&originalUrl=${encodeURIComponent(url)}`;
   };
 
   return (

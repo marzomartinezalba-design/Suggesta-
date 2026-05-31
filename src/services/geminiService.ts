@@ -3,9 +3,30 @@ import { BaseItem, ItemType } from "../types";
 const reviewsCache: Record<string, any[]> = {};
 const recsCache: Record<string, any[]> = {};
 
+// Detect and route requests to the Cloud Run backend when running on external domains (e.g. Vercel)
+export const getBackendUrl = (): string => {
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    const envUrl = (import.meta as any).env?.VITE_BACKEND_URL;
+    if (envUrl) return envUrl;
+
+    if (
+      hostname.includes("vercel.app") ||
+      hostname.includes("github.io") ||
+      hostname.includes("web.app") ||
+      hostname.includes("firebaseapp.com") ||
+      (hostname === "localhost" && !window.location.port)
+    ) {
+      return "https://ais-pre-5wmbrdd4c544s76bmd574a-822615077587.europe-west2.run.app";
+    }
+  }
+  return "";
+};
+
 // Helper to make POST requests to server-side Gemini Proxy routes
 async function apiPost(endpoint: string, body: object): Promise<any> {
-  const response = await fetch(endpoint, {
+  const url = `${getBackendUrl()}${endpoint}`;
+  const response = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
